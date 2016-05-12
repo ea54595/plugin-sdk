@@ -162,6 +162,14 @@ jQuery.noConflict();
                 hide: 400,
                 modal: true,
                 buttons: {
+                    Ok: function() {
+                        // geteEmementParams で値を引っ張ってこれるっぽい。
+                        // これを変換してPOST でなげれるようにすればOK
+                        Sansanlookup.getElementParams($(this).parents(".sansan-lookup-tr"));
+                        var checked = $('.sansan-lookup-select[type="checkbox"]:checked');
+                        Sansanlookup.createKintoneRecord();
+                        $(this).dialog('close');
+                    },
                     Cancel: function() {
                         $(this).dialog('close');
                     }
@@ -186,8 +194,8 @@ jQuery.noConflict();
                 '<tr id="lookuplist_' + i + '" class="sansan-lookup-tr">' +
                 //1列目：選択ボタン
                 '<td class="lookup-cell-kintone">' +
-                '<span><button class="button-simple-custom sansan-lookup-select" type="button">' +
-                '選択</button></span>' + '</td>' +
+                '<span><input class="button-simple-custom sansan-lookup-select" type="checkbox">' +
+                '選択</input></span>' + '</td>' +
                 //2列目：会社名
                 '<td>' + '<div class="line-cell-kintone"><span>' +
                 escapeHtml(sansan_record['companyName']) + '</span></div>' +
@@ -473,6 +481,10 @@ jQuery.noConflict();
                 hide: 400,
                 modal: true,
                 buttons: {
+                    Ok : function(){
+                        $(this).dialog('close');
+                        $(this).remove();
+                    },
                     Cancel: function() {
                         $(this).dialog('close');
                         $(this).remove();
@@ -553,7 +565,27 @@ jQuery.noConflict();
             '<button id="lookup_search_button" type="button">取得</button>' +
             '<button id="lookup_clear_button" type="button">クリア</button>' +
             '<button id="lookup_setting_button" type="button">期間</button>' +
-            '</div>'
+            '</div>',
+
+        createKintoneRecord: function (contacts) {
+            var host = location.host;
+            var appId;
+            var request = {
+              method: 'POST',
+              api: '/k/v1/record.json',
+              payload: {
+                app: appId,
+                record : contacts
+              }
+            };
+            kintone.api('https://' + host + '/k/v1/bulkRequest.json', 'POST', request)
+              .then(function (successResult) {
+                console.log(successResult);
+              }).catch(function (errorResult) {
+                console.log(errorResult);
+              }
+            );
+        }
     };
 
     // [追加画面/編集画面]表示イベント
